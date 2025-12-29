@@ -25,9 +25,8 @@
             $this->lastLogin = new DateTime();
         }
 
-        public function getUserName(){
-            return $this->username;
-        }
+        public function getUserName(){ return $this->username;}
+        public function getUserID(){ return $this->_id;}
         public function getPassword(){
             return $this->password;
         }
@@ -56,6 +55,11 @@
             $this->articles = $articles;
         }
 
+        public function getAticles(){
+            return $this->articles;
+        }
+
+
         public function readUsers()
         {
             return parent::readUsers() . "bio :$this->username\t articles :$this->articles\n";
@@ -72,22 +76,45 @@
                 if($article->getArticleID() == $_id){
                     unset($this->articles[$index]);
                     return true;
-                }else{
-                    return false;
                 }
             }
+            return false;
         }
         //========================================       Read Articles    ======================================== 
         public function readArticle(){
             foreach($this->articles as $article){
-                echo "helooo! is this working??????????";
-
                 if($article->getArticleStatus() === 'published'){
-                    echo "title : $article->getArticleTitle()  | content : $article->getArticleContent(), author : $this->username";
+                    echo "\e[32m_id : \e[0m". $article->getArticleID() . "    \e[32mtitle : \e[0m" . $article->getArticleTitle() . "    \e[32mauthor \e[0m: $this->username \n";
+                        }
+            }
+        }
+
+
+        public function readArticleById($_id){
+            foreach($this->articles as $article){
+                if($article->getArticleID() == $_id){
+                    echo "\e[32m_id : \e[0m". $article->getArticleID() . "    \e[32mtitle : \e[0m" . $article->getArticleTitle() ."    \e[32mcontent : \e[0m" . $article->getArticleContent() . "    \e[32mauthor \e[0m: $this->username \n";
+                    $comments = $article->getComments();
+                    if (empty($comments)) {
+                        echo "\e[33mNo comments yet.\e[0m\n";
+                    } else {
+                        foreach ($comments as $comment) {
+                            echo $comment->readComments();
+                        }
+                    }
+
                 }
             }
         }
 
+        public function readArticleByUser($_id){
+            foreach($this->articles as $article){
+                if($article->getArticleAuthor_id() === $_id){
+                    echo "\e[32m_id : \e[0m". $article->getArticleID() . "    \e[32mtitle : \e[0m" . $article->getArticleTitle() . "    \e[32mauthor \e[0m: $this->username      \e[32mStatus \e[0m: " . $article->getArticleStatus() ."\n";
+                }
+            }
+        }
+        //==========================================================================================================
         
         public function updateOwnArticle()
         {
@@ -231,27 +258,30 @@
         public function getArticleID(){ return $this->_id; }
         public function getArticleTitle(){ return $this->title; }
         public function getArticleContent(){ return $this->content; }
+        public function getArticleStatus(){ return $this->status; }
+        public function getArticleAuthor_id(){ return $this->author_id; }
+        public function getComments(){ return $this->comments;}
         // --------------        
 
 
         public function addComment(Comments $comment){
-            $this->comments = $comment;
+            $this->comments[] = $comment;
         }
-        // -------------- 
-        public function addCategory(Category $category):bool
-        {
-            
-        }
-
-        // ---------------
-        public function removeCategory():bool
-        {
-
-        }
-
+        
         // ----------------
-        public function publish():bool { $this->status = 'Publié';}
-        public function archiver():bool { $this->status = 'Archiver'; }
+        public function publish():bool { 
+            if($this->status == 'Publié'){
+                return false;
+            }
+            $this->status = 'Published';
+            return true;
+        }
+
+        public function archiver():bool { 
+            if(!$this->status === 'Archiver'){
+
+            }; 
+        }
 
     }
 
@@ -269,6 +299,11 @@
             $this->user_id = $user_id;
             $this->article_id = $article_id;
         }
+
+        public function readComments()
+          {
+              return "\e[33muser_id :  \e[0m$this->user_id \n $this->content\n";
+          }
 
         public function update(): bool 
         { 

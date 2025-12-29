@@ -4,13 +4,15 @@ require_once 'Classes.php';
 
 class Collection {
 protected array $users;
+protected array $articles;
 // private $categories = [];
 private $current_user = null; 
 
 
-public function __construct($users)
+public function __construct($users, $articles)
 {
     $this->users = $users;
+    $this->articles = $articles;
 }
 
 //----------------------------------     login   ------------------------------------
@@ -34,11 +36,14 @@ public function logout() {
 public function getCurrentUser() {
     return $this->current_user;
 }
+public function getCurrentUserID() {
+    return $this->current_user->getUserID();
+}
 
 public function getCurrentUserRole(){
     if(!$this->current_user){return null;}
     if($this->current_user instanceof Admin){return 'admin';}
-    if($this->current_user instanceof Author){return 'admin';}
+    if($this->current_user instanceof Author){return 'author';}
     if($this->current_user instanceof Editor){return 'editor';}
     return 'guest';
 }
@@ -52,8 +57,6 @@ public function isLoggedIn() {
     }
 }
 
-//---------------------------     Get Current User Role     ---------------------------
-
 
 //---------------------------     find username by id     ---------------------------
     // public function getUserNameById($_id){
@@ -66,22 +69,54 @@ public function isLoggedIn() {
 
 //----------------------------------     show published Articles   ------------------------------------
 public function showArticles(){
-    
-    // $username = getUserNameById($_id);
-    foreach($this->users as $user){
-        if($user instanceof Author){
-            $user->readArticle(); 
+        foreach($this->users as $user){
+            if($user instanceof Author){
+                $user->readArticle(); 
+            }
         }
+}
+
+public function showArticleByID($_id): bool
+{
+    foreach ($this->users as $user) {
+        if ($user instanceof Author) {
+            foreach ($user->getArticles() as $article) {
+                if ($article->getArticleID() == $_id) {
+                    $user->readArticleById($_id);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+public function showCurrentUserArticles(){
+        if($this->current_user instanceof Author){
+            $this->current_user->readArticleByUser($this->current_user->getUserID()); 
     }
 }
 
+public function checkIfArticleExistThenPublish($_id){
+    foreach($this->articles as $article){
+        if($article->getArticleID() == $_id){
+            return $article->publish();
+        }
 
-
+    }
+    return false;
 }
 
-// $collection = new Collection();
-// $result = $collection->login('ahmed', 'ahmed2025');
-// // echo $result ;
 
-// $result1 = $collection->isLoggedIn();
-// // echo $result1 ;
+public function deleteCurrentUserArticle($_id)
+{
+    if (!($this->current_user instanceof Author)) {
+        return false;
+    }
+    return $this->current_user->deleteOwnArticle($_id);
+}
+   
+}
+
+

@@ -5,23 +5,33 @@ require_once 'collection.php';
 
 
 $validChoice = false;
-echo "\e[33m============================\e[0m\n";
-echo "\e[33m| Welcome to our Blog ^^ |\e[0m\n";
-echo "\e[33m============================\e[0m\n";
 
 $articles = [
-    $article1 = new Article(1, 'Movies', 'there is a lot of good movies', 'published', 3),
-    $article2 = new Article(2, 'Anime', 'hianime is the best website to watch animes', 'published', 3),
-    $article3 = new Article(3, 'novels', 'The novels are the best way to improve your vocabulery', 'published', 3)
+    $article1 = new Article(1, 'Movies', 'there is a lot of good movies', 'published', 7),
+    $article2 = new Article(2, 'Anime', 'hianime is the best website to watch animes', 'published', 7),
+    $article3 = new Article(3, 'novels', 'The novels are the best way to improve your vocabulery', 'published', 7),
+    $article4 = new Article(4, 'games', 'games are such a beautiful way to redius stress', 'draft', 7),
+    $article5 = new Article(5, 'Anime', 'hianime is the best website to watch animes', 'published', 7),
+    $article6 = new Article(6, 'novels', 'The novels are the best way to improve your vocabulery', 'published', 4),
+    $article7 = new Article(7, 'novels', 'The novels are the best way to improve your vocabulery', 'published', 4),
+    $article8 = new Article(8, 'novels', 'The novels are the best way to improve your vocabulery', 'published', 4)
 ];
+
+$comment1 = new Comments(1, "Great article!", 3, 3);
+$comment2 = new Comments(2, "Very helpful, thanks!", 4, 3);
+
+$article3->addComment($comment1);
+$article3->addComment($comment2);
 
 $users = [
     new Admin(2,'sara', 'sara@gmail.com', 'sara2025', true),
     new Editor(3,'hajar', 'hajar@gmail.com', 'hajar2025', 'junior'),
-    new Author(7,'ahmed', 'ahmed@gmail.com', 'ahmed2025','bio',$articles)
+    new Author(7,'ahmed', 'ahmed@gmail.com', 'ahmed2025','bio',$articles),
+    new Author(4,'imad', 'imad@gmail.com', 'imad2025','bio',$articles)
 ];
 
-$collection = new Collection($users);
+
+$collection = new Collection($users, $articles);
 
 
 function clearSystem(){echo "\033[2J\033[H";}
@@ -29,6 +39,11 @@ function clearSystem(){echo "\033[2J\033[H";}
 do {
 start :
 clearSystem();
+
+echo "\e[33m============================\e[0m\n";
+echo "\e[33m| Welcome to our Blog ^^ |\e[0m\n";
+echo "\e[33m============================\e[0m\n";
+
 echo "1 => Login\n";
 echo "2 => Continue without account\n";
 echo "0 => Exit Program\n";
@@ -57,6 +72,8 @@ switch($mainChoice){
                     case '1':
                         clearSystem();
                         //list des articles :
+                        print_r($collection->showArticles());
+
                         author_allArticlesMenu:
                         echo "1 => read article\n";
                         echo "2 => return\n";
@@ -99,8 +116,12 @@ switch($mainChoice){
                             goto author_allArticlesMenu;
                         }
                     case '2':
-                        author_seeMyArticles:
                         clearSystem();
+                        $_id = $collection->getCurrentUserID();
+                        $collection->showCurrentUserArticles();
+                        // var_dump($this->current_user);
+                        // var_dump($this->current_user->articles);
+                        author_seeMyArticles:
                         echo "1 => read article\n";
                         echo "2 => delete article\n";
                         echo "3 => update article\n";
@@ -111,21 +132,45 @@ switch($mainChoice){
                         switch ($choix8) {
                             case '1':
                                 clearSystem();
+                                echo "_id : ";
+                                $want_to_read_id =(int) trim(fgets(STDIN));
+                                
+
+
                                 # code...
                                 
                                 break;
                             case '2':
                                 clearSystem();
+                                echo "_id : ";
+                                $want_to_delete_id =(int) trim(fgets(STDIN));
+                                if ($collection-> deleteCurrentUserArticle($want_to_delete_id)) {
+                                    echo "\e[32mArticle deleted successfully!\e[0m\n";
+                                } else {
+                                    echo "\e[31mYou can't delete this article or it does not exist.\e[0m\n";
+                                }
+
                                 # code...
                                 break;
                             case '3':
                                 clearSystem();
                                 # code...
                                 break;
-                            case '4':
-                                clearSystem();
+                                case '4':
+                                    chosePUvlishedID:
+                                    clearSystem();
+                                    $collection->showCurrentUserArticles();
+                                    echo "chose the _id of the article you want to publish : \n";
+                                    if($collection->checkIfArticleExistThenPublish($want_to_publish_id)){
+                                        echo "\e[32marticle published successfully!\e[0m\n";
+                                        goto author_seeMyArticles;
+
+                                    }else{
+                                        echo "\e[33mthis article is already pulblished or does not exist!\e[0m\n";
+                                        goto chosePUvlishedID;
+                                    }
+                                    // break;
                                 # code...
-                                break;
                             case '5':
                                 clearSystem();
                                 goto authorMenu;
@@ -199,11 +244,10 @@ switch($mainChoice){
         switch($choice1){
             case "1": // see all articles
                 clearSystem();
-                $collection->readARticles();
+                print_r($collection->showArticles());
 
                 //sub menu
                 subStartCase2_1:
-                clearSystem();
                 echo "1 => read Article\n";
                 echo "2 => return\n";
                 $choice2 = trim(fgets(STDIN));
